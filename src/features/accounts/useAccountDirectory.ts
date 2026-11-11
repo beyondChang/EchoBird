@@ -32,14 +32,12 @@ import {
 } from '../../hooks/useAccountPlugin';
 import type { usePluginsStore } from '../../stores/pluginsStore';
 import type { useNavigationStore } from '../../stores/navigationStore';
-import { useUsageIslandVisible } from '../../stores/usageIslandStore';
 
 interface DirectoryOptions {
   selectedTool: string | null;
   activePage: ReturnType<typeof useNavigationStore.getState>['activePage'];
   isActive: boolean;
   developerMode: boolean;
-  appsTab: string;
   detectedTools: LocalTool[];
   installedPlugins: ReturnType<typeof usePluginsStore.getState>['installed'];
   pluginProviders: ReturnType<typeof pluginToolProviders>;
@@ -54,7 +52,6 @@ export function useAccountDirectory({
   activePage,
   isActive,
   developerMode,
-  appsTab,
   detectedTools,
   installedPlugins,
   pluginProviders,
@@ -69,11 +66,8 @@ export function useAccountDirectory({
     clineSelectionRevisionRef.current += 1;
     accountNavigation.current = { tool: selectedTool, page: activePage };
   }, [selectedTool, activePage]);
-  const usageIslandOpen = useUsageIslandVisible();
-  const accountPage =
-    activePage === 'accounts' || (activePage === 'apps' && appsTab === 'usageIsland');
-  // The floating island needs saved accounts on every page, but tool pages keep their own target.
-  const accountDataNeeded = accountPage || usageIslandOpen;
+  const accountPage = activePage === 'accounts';
+  const accountDataNeeded = accountPage;
   const accountsEnabled =
     isActive && detectedTools.some((tool) => tool.id === selectedTool && tool.installed);
   const pluginAvailable = (id: string) => hasAccountPlugin(id, installedPlugins, developerMode);

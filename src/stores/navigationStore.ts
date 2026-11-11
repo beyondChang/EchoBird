@@ -7,7 +7,7 @@ import { create } from 'zustand';
 import type { PageType } from '../components';
 import { optionalPagesFromSettings, type OptionalPages } from './optionalPages';
 
-export type AppsTab = 'desktop' | 'install' | 'pets' | 'plugins' | 'usageIsland';
+export type AppsTab = 'desktop' | 'install' | 'plugins';
 export type SmartAccessTab = 'configuration' | 'statistics';
 interface Location {
   page: PageType;
@@ -16,7 +16,7 @@ interface Location {
   toolTab: 'desktop' | 'install';
 }
 
-export type DeveloperTab = 'pets' | 'plugins' | 'statistics' | 'usageIsland';
+export type DeveloperTab = 'plugins' | 'statistics';
 
 interface NavigationState {
   activePage: PageType;
@@ -138,7 +138,7 @@ export const useNavigationStore = create<NavigationState>((set) => ({
   optionalPages: optionalPagesFromSettings({}),
   optionalPagesReady: false,
   optionalPagesRevision: 0,
-  developerTab: 'pets',
+  developerTab: 'plugins',
   accountPluginsRequest: null,
   accountPluginsRequestId: 0,
   backHistory: [],

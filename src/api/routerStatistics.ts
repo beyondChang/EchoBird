@@ -7,14 +7,6 @@ export interface RouterTokenUsage {
   totalTokens: number;
   reportedResponses: number;
 }
-export interface RouterTokenCredits {
-  ledgerId: string;
-  total: number;
-}
-export function getSmartRouterTokenCredits(): Promise<RouterTokenCredits> {
-  return invoke('get_smart_router_token_credits');
-}
-
 export interface RouterStatisticsCounts {
   usage?: RouterTokenUsage;
   attempts: number;

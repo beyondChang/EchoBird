@@ -1,5 +1,3 @@
-import { useUsageIslandStore } from './stores/usageIslandStore';
-import { initializeMergedPageFeatures } from './stores/mergedPagesMigration';
 // App.tsx — Tauri application shell (lightweight router)
 // Layout matches the original v1.1.0 structure exactly.
 // Pages extracted to src/pages/ with Provider pattern.
@@ -30,12 +28,6 @@ import { useAutoClaimRewards } from './hooks/useAutoClaimRewards';
 import { useToolsStore } from './stores/toolsStore';
 import { useNavigationStore } from './stores/navigationStore';
 import { optionalPagesFromSettings } from './stores/optionalPages';
-const PetsMain = lazy(() =>
-  import('./pages/Pets/Pets').then((module) => ({ default: module.PetsMain }))
-);
-const PetsPanel = lazy(() =>
-  import('./pages/Pets/Pets').then((module) => ({ default: module.PetsPanel }))
-);
 import { PluginHubMain, PluginHubPanel } from './pages/PluginHub';
 import {
   RouterStatisticsProvider,
@@ -46,17 +38,10 @@ import {
 // Shared providers remain mounted; display modules load on first use.
 import { ModelNexusProvider } from './pages/ModelNexus/provider';
 import { AppManagerProvider } from './pages/AppManager/AppManagerProvider';
-import { UsageIslandHost } from './pages/UsageIsland/UsageIslandHost';
 import { LocalServerProvider } from './pages/LocalServer/provider';
 import { MotherAgentProvider } from './pages/MotherAgent/MotherAgentProvider';
 import { FreeModelsProvider, useFreeModels } from './pages/FreeModels/provider';
 import { VoiceInputProvider } from './pages/VoiceInput/provider';
-const UsageIslandMain = lazy(() =>
-  import('./pages/UsageIsland/UsageIsland').then((module) => ({ default: module.UsageIslandMain }))
-);
-const UsageIslandPanel = lazy(() =>
-  import('./pages/UsageIsland/UsageIsland').then((module) => ({ default: module.UsageIslandPanel }))
-);
 const VoiceInputMain = lazy(() =>
   import('./pages/VoiceInput/VoiceInput').then((module) => ({ default: module.VoiceInputMain }))
 );
@@ -213,21 +198,15 @@ function AppContent() {
 
   useEffect(() => {
     let active = true;
-    let stopMigration: (() => void) | undefined;
-    const islandAtRead = useUsageIslandStore.getState();
     void getSettings()
       .then((settings) => {
         if (!active) return;
-        stopMigration = initializeMergedPageFeatures(settings, islandAtRead);
         if (!useNavigationStore.getState().optionalPagesReady)
           useNavigationStore.getState().setOptionalPages(optionalPagesFromSettings(settings));
       })
-      .catch(() => {
-        if (active) stopMigration = initializeMergedPageFeatures(null, islandAtRead);
-      });
+      .catch(() => {});
     return () => {
       active = false;
-      stopMigration?.();
     };
   }, []);
 
@@ -315,7 +294,7 @@ function AppContent() {
   const is = (p: PageType) => activePage === p;
   const appsToolsActive = is('apps') && (appsTab === 'desktop' || appsTab === 'install');
   const routerActive = is('freeModels') && smartAccessTab === 'configuration';
-  const feature = (tab: 'pets' | 'plugins' | 'usageIsland' | 'statistics') =>
+  const feature = (tab: 'plugins' | 'statistics') =>
     featuresReady &&
     (tab === 'statistics'
       ? is('freeModels') && smartAccessTab === 'statistics'
@@ -332,7 +311,6 @@ function AppContent() {
                 <AppManagerProvider>
                   <LocalServerProvider enabled={enabledPages.localLlm}>
                     <VoiceInputProvider>
-                      <UsageIslandHost />
                       <div
                         className={`app-window-shell relative isolate flex flex-col h-screen w-full bg-cyber-bg overflow-hidden ${isMaximized || IS_MACOS ? '' : 'rounded-xl'}`}
                       >
@@ -429,13 +407,6 @@ function AppContent() {
                                         <AppManagerMain />
                                       </OnFirstVisit>
                                     </div>
-                                    {feature('pets') && (
-                                      <div className={pageBlock(true)}>
-                                        <OnFirstVisit active>
-                                          <PetsMain />
-                                        </OnFirstVisit>
-                                      </div>
-                                    )}
                                     <div className={pageBlock(feature('statistics'))}>
                                       <OnFirstVisit active={feature('statistics')}>
                                         <RouterStatisticsMain />
@@ -444,11 +415,6 @@ function AppContent() {
                                     <div className={pageBlock(feature('plugins'))}>
                                       <OnFirstVisit active={feature('plugins')}>
                                         <PluginHubMain active={feature('plugins')} />
-                                      </OnFirstVisit>
-                                    </div>
-                                    <div className={pageBlock(feature('usageIsland'))}>
-                                      <OnFirstVisit active={feature('usageIsland')}>
-                                        <UsageIslandMain />
                                       </OnFirstVisit>
                                     </div>
                                     {enabledPages.localLlm && (
@@ -475,13 +441,6 @@ function AppContent() {
                                 </main>
 
                                 <aside className="flex flex-col">
-                                  {feature('pets') && (
-                                    <div className={page(true)}>
-                                      <OnFirstVisit active>
-                                        <PetsPanel />
-                                      </OnFirstVisit>
-                                    </div>
-                                  )}
                                   <div className={page(feature('statistics'))}>
                                     <OnFirstVisit active={feature('statistics')}>
                                       <RouterStatisticsPanel />
@@ -490,11 +449,6 @@ function AppContent() {
                                   <div className={page(feature('plugins'))}>
                                     <OnFirstVisit active={feature('plugins')}>
                                       <PluginHubPanel />
-                                    </OnFirstVisit>
-                                  </div>
-                                  <div className={page(feature('usageIsland'))}>
-                                    <OnFirstVisit active={feature('usageIsland')}>
-                                      <UsageIslandPanel />
                                     </OnFirstVisit>
                                   </div>
                                   <div className={page(is('voice'))}>

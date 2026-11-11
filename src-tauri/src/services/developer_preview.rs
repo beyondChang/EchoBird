@@ -77,9 +77,7 @@ pub fn command_allowed(command: &str) -> bool {
         && !matches!(command, "plugin_cancel" | "plugin_window_control"))
         || matches!(
             command,
-            "get_smart_router_statistics"
-                | "get_smart_router_statistics_catalog"
-                | "get_smart_router_token_credits"
+            "get_smart_router_statistics" | "get_smart_router_statistics_catalog"
         );
     !developer_command || token().is_ok()
 }

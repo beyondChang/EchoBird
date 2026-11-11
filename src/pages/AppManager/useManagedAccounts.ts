@@ -4,7 +4,6 @@ import { useConfirm } from '../../components/ConfirmDialog';
 import { useI18n } from '../../hooks/useI18n';
 import { useNavigationStore } from '../../stores/navigationStore';
 import { useRewardClaimStore } from '../../stores/rewardClaimStore';
-import { useUsageIslandVisible } from '../../stores/usageIslandStore';
 
 export const BROWSER_LOGIN_TIMEOUT_SECONDS = 10 * 60;
 
@@ -48,11 +47,7 @@ export function useManagedAccounts<A extends ManagedAccount, L extends ManagedLo
 ) {
   const { t } = useI18n();
   const activePage = useNavigationStore((state) => state.activePage);
-  // While the floating island keeps every group loaded, moving between pages without
-  // accounts is not a new visit. Leaving the app or account page still is.
-  const islandOpen = useUsageIslandVisible();
-  const visitedPage =
-    islandOpen && activePage !== 'apps' && activePage !== 'accounts' ? 'background' : activePage;
+  const visitedPage = activePage;
   const confirm = useConfirm();
   const [rows, setRows] = useState<Record<string, A[]>>({});
   const [selection, setSelection] = useState<Record<string, string | null>>({});

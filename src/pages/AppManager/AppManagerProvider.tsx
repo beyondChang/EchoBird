@@ -365,7 +365,6 @@ export const AppManagerProvider: React.FC<AppManagerProviderProps> = ({ children
     activePage,
     isActive,
     developerMode,
-    appsTab,
     detectedTools,
     installedPlugins,
     pluginProviders,

@@ -119,7 +119,7 @@ export const AppManagerTitleActions: React.FC = () => {
         />
       </div>
       <div className="flex items-center gap-2">
-        {(['pets', 'plugins', 'usageIsland'] as const).map((tab) => (
+        {(['plugins'] as const).map((tab) => (
           <ViewModeTabGroup
             key={tab}
             className="view-mode-tabs h-9 overflow-hidden rounded-button border border-cyber-border"

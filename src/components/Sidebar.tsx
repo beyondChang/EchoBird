@@ -9,7 +9,6 @@ import {
   RefreshCw,
   Users,
   Mic,
-  Gauge,
   Settings,
 } from 'lucide-react';
 import { NavItem } from './NavItem';
@@ -21,7 +20,6 @@ import { useI18n } from '../hooks/useI18n';
 import type { TKey } from '../i18n';
 import type { SmartRouterConfig } from '../api/smartRouter';
 import { useLocalServerStatusStore } from '../stores/localServerStatusStore';
-import { useUsageIslandStore } from '../stores/usageIslandStore';
 import { useVoiceInputStore, voiceBusy } from '../stores/voiceInputStore';
 import { BirdEasterEgg } from './BirdEasterEgg';
 import { useSidebarStore } from '../stores/sidebarStore';
@@ -127,7 +125,6 @@ export const Sidebar = ({
     />
   ) : null;
   const collapsed = useSidebarStore((state) => state.collapsed);
-  const developerMode = useNavigationStore((state) => state.developerMode);
   const optionalPages = useNavigationStore((state) => state.optionalPages);
   const optionalPagesReady = useNavigationStore((state) => state.optionalPagesReady);
   const sidebarRef = useRef<HTMLElement>(null);
@@ -144,9 +141,6 @@ export const Sidebar = ({
     (state) => !state.snapshot || voiceBusy(state.snapshot.phase)
   );
   const saveVoice = useVoiceInputStore((state) => state.save);
-  const hasUsageSources = useUsageIslandStore((state) => state.sources.length > 0);
-  const usageIslandEnabled = useUsageIslandStore((state) => state.enabled);
-  const updateUsageIsland = useUsageIslandStore((state) => state.update);
   const showSmartRouterToggle = smartRouterGroups.some((router) => router.candidateIds.length > 0);
   const changeVoice = async (enabled: boolean) => {
     if (voiceDisabled || voicePending) return;
@@ -264,16 +258,6 @@ export const Sidebar = ({
       <div className="flex-shrink-0 pt-4 text-[14px] text-cyber-text-secondary">
         <div className="space-y-1 text-[15px] font-medium">
           {collapsed && downloadButton}
-          {developerMode && hasUsageSources && (
-            <SidebarToggle
-              collapsed={collapsed}
-              label={t('developer.usageIsland')}
-              ariaLabel={t('usageIsland.enable')}
-              icon={<Gauge size={20} />}
-              checked={usageIslandEnabled}
-              onChange={(enabled) => updateUsageIsland({ enabled })}
-            />
-          )}
           {hasVoiceChannels && (
             <SidebarToggle
               collapsed={collapsed}
