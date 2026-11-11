@@ -12,12 +12,7 @@ import { useNavigationStore } from '../stores/navigationStore';
 const navigationButtonClass =
   'h-full w-8 flex items-center justify-center rounded text-cyber-text-secondary enabled:hover:bg-cyber-elevated/50 enabled:hover:text-cyber-text disabled:text-cyber-text-muted disabled:opacity-40 transition-colors';
 
-interface TitleBarProps {
-  onFeedbackClick?: () => void;
-  onChangelogClick?: () => void;
-}
-
-export const TitleBar: React.FC<TitleBarProps> = ({ onFeedbackClick, onChangelogClick }) => {
+export const TitleBar: React.FC = () => {
   const { t } = useI18n();
   const collapsed = useSidebarStore((state) => state.collapsed);
   const setCollapsed = useSidebarStore((state) => state.setCollapsed);
@@ -26,9 +21,6 @@ export const TitleBar: React.FC<TitleBarProps> = ({ onFeedbackClick, onChangelog
   const goBack = useNavigationStore((state) => state.goBack);
   const goForward = useNavigationStore((state) => state.goForward);
   const handleMinimize = () => getCurrentWindow().minimize();
-  // One-click hide to tray. Reuses the same native hide command as
-  // the X-button's "tray" choice in handleClose, so tray-restore is identical.
-  const handleMinimizeToTray = () => hideMainWindow();
   const [isMaximized, setIsMaximized] = useState(false);
   const [showCloseDialog, setShowCloseDialog] = useState(false);
 
@@ -178,33 +170,9 @@ export const TitleBar: React.FC<TitleBarProps> = ({ onFeedbackClick, onChangelog
           className="flex items-center h-full"
           style={{ WebkitAppRegion: 'no-drag' } as React.CSSProperties}
         >
-          <button
-            onClick={onChangelogClick}
-            className="h-full px-3 flex items-center justify-center whitespace-nowrap text-[14px] leading-none font-sans text-cyber-text-secondary hover:bg-cyber-text/20 hover:text-cyber-text transition-colors"
-          >
-            {t('nav.changelog')}
-          </button>
-          <button
-            onClick={onFeedbackClick}
-            className="h-full px-3 flex items-center justify-center whitespace-nowrap text-[14px] leading-none font-sans text-cyber-text-secondary hover:bg-cyber-text/20 hover:text-cyber-text transition-colors"
-          >
-            {t('nav.feedback')}
-          </button>
-          <button
-            onClick={handleMinimizeToTray}
-            aria-label={t('settings.closeToTray')}
-            className="h-full px-4 flex items-center justify-center hover:bg-cyber-text/20 transition-colors"
-          >
-            <img
-              src="/brand/bird.png"
-              alt=""
-              draggable={false}
-              className="h-[18px] w-[18px] select-none"
-            />
-          </button>
           {/* Window controls — Windows/Linux only. macOS uses native traffic
               lights on the left (titleBarStyle: Overlay), so we omit our custom
-              minimize/maximize/close here and keep the remaining header actions. */}
+              minimize/maximize/close here. */}
           {!IS_MACOS && (
             <>
               <button

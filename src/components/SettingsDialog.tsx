@@ -14,8 +14,6 @@ import {
   Gift,
   BarChart3,
   ShieldCheck,
-  Newspaper,
-  Trophy,
   Server,
 } from 'lucide-react';
 import { getVersion } from '@tauri-apps/api/app';
@@ -648,40 +646,6 @@ export const SettingsDialog: React.FC<SettingsDialogProps> = ({
                         {t('settings.sensitiveInfoProtectionError')}
                       </p>
                     )}
-                  </div>
-                  <div className="flex items-center justify-between gap-2 px-2">
-                    <div className="flex items-center gap-2">
-                      <Newspaper size={14} className="shrink-0 text-cyber-text-secondary" />
-                      <span className="text-[14px] font-medium text-cyber-text-secondary">
-                        {t('nav.aiNews')}
-                      </span>
-                    </div>
-                    <RoutingToggle
-                      label={t('nav.aiNews')}
-                      hideLabel
-                      dimWhenDisabled={!settingsReady}
-                      checked={optionalPages.aiNews}
-                      disabled={!settingsReady || statisticsPending || protectionPending}
-                      pending={optionalPending === 'aiNews'}
-                      onChange={(value) => void handleOptionalChange('aiNews', value)}
-                    />
-                  </div>
-                  <div className="flex items-center justify-between gap-2 px-2">
-                    <div className="flex items-center gap-2">
-                      <Trophy size={14} className="shrink-0 text-cyber-text-secondary" />
-                      <span className="text-[14px] font-medium text-cyber-text-secondary">
-                        {t('nav.aiCareer')}
-                      </span>
-                    </div>
-                    <RoutingToggle
-                      label={t('nav.aiCareer')}
-                      hideLabel
-                      dimWhenDisabled={!settingsReady}
-                      checked={optionalPages.aiCareer}
-                      disabled={!settingsReady || statisticsPending || protectionPending}
-                      pending={optionalPending === 'aiCareer'}
-                      onChange={(value) => void handleOptionalChange('aiCareer', value)}
-                    />
                   </div>
                   <div className="px-2">
                     <div className="flex items-center justify-between gap-2">

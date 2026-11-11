@@ -26,7 +26,6 @@ use commands::mod_stub;
 use commands::model_commands;
 use commands::native_account_commands;
 use commands::process_commands;
-use commands::pulse_commands;
 use commands::qoder_account_commands;
 use commands::qwenwork_account_commands;
 use commands::settings_commands;
@@ -34,7 +33,6 @@ use commands::smart_router_commands;
 use commands::tool_commands;
 
 use commands::agent_commands;
-use commands::ai_career_commands;
 use commands::bundled_commands;
 use commands::parasite_commands;
 use commands::secret_commands;
@@ -101,17 +99,13 @@ fn tray_t(locale: &str, key: &str) -> String {
 fn menu_t(locale: &str, key: &str) -> String {
     match (locale, key) {
         ("zh-Hans", "settings") => "设置…".into(),
-        ("zh-Hans", "feedback") => "问题反馈".into(),
         ("zh-Hans", "edit") => "编辑".into(),
         ("zh-Hans", "view") => "视图".into(),
         ("zh-Hans", "window") => "窗口".into(),
-        ("zh-Hans", "help") => "帮助".into(),
         ("en", "settings") => "Settings…".into(),
-        ("en", "feedback") => "Feedback".into(),
         ("en", "edit") => "Edit".into(),
         ("en", "view") => "View".into(),
         ("en", "window") => "Window".into(),
-        ("en", "help") => "Help".into(),
         // Fallback to English
         (_, key) => menu_t("en", key),
     }
@@ -120,8 +114,8 @@ fn menu_t(locale: &str, key: &str) -> String {
 /// Build and install EchoBird's macOS application menu (the screen-top menu bar).
 ///
 /// Tauri auto-creates a default menu on macOS, but it has no Settings entry, so
-/// we replace it with an equivalent complete menu that adds **Settings… (⌘,)**
-/// and **Feedback**. Every standard shortcut stays bound — ⌘W close, ⌘M
+/// we replace it with an equivalent complete menu that adds **Settings… (⌘,)**.
+/// Every standard shortcut stays bound — ⌘W close, ⌘M
 /// minimize, ⌘Q quit, ⌘H hide, ⌘X/⌘C/⌘V/⌘A edit, ⌃⌘F fullscreen — and the
 /// window items route through the same `CloseRequested`/lifecycle paths as the
 /// in-window controls (so ⌘W honors the close-to-tray setting just like the X
@@ -134,8 +128,6 @@ fn install_macos_menu(app: &tauri::App, locale: &str) -> tauri::Result<()> {
     let settings_item = MenuItemBuilder::with_id("menu-open-settings", menu_t(locale, "settings"))
         .accelerator("CmdOrCtrl+,")
         .build(app)?;
-    let feedback_item =
-        MenuItemBuilder::with_id("menu-open-feedback", menu_t(locale, "feedback")).build(app)?;
 
     // App menu — macOS uses the app name as the title automatically.
     let app_menu = SubmenuBuilder::new(app, "EchoBird")
@@ -173,16 +165,11 @@ fn install_macos_menu(app: &tauri::App, locale: &str) -> tauri::Result<()> {
         .item(&PredefinedMenuItem::close_window(app, None)?)
         .build()?;
 
-    let help_menu = SubmenuBuilder::new(app, menu_t(locale, "help"))
-        .item(&feedback_item)
-        .build()?;
-
     let menu = MenuBuilder::new(app)
         .item(&app_menu)
         .item(&edit_menu)
         .item(&view_menu)
         .item(&window_menu)
-        .item(&help_menu)
         .build()?;
 
     app.set_menu(menu)?;
@@ -190,20 +177,14 @@ fn install_macos_menu(app: &tauri::App, locale: &str) -> tauri::Result<()> {
 }
 
 /// Handle clicks on the macOS application-menu items by forwarding them to the
-/// frontend, which opens the same Settings dialog / Feedback page as the
-/// in-window buttons. Kept as a free function (not an inline closure) so it
-/// type-checks on every platform even though it is only registered on macOS.
+/// frontend, which opens the same Settings dialog as the in-window buttons.
+/// Kept as a free function (not an inline closure) so it type-checks on every
+/// platform even though it is only registered on macOS.
 #[allow(dead_code)] // registered only under #[cfg(target_os = "macos")]
 fn handle_app_menu_event(app_handle: &tauri::AppHandle, event: tauri::menu::MenuEvent) {
     use tauri::Emitter;
-    match event.id().as_ref() {
-        "menu-open-settings" => {
-            let _ = app_handle.emit("menu-open-settings", ());
-        }
-        "menu-open-feedback" => {
-            let _ = app_handle.emit("menu-open-feedback", ());
-        }
-        _ => {}
+    if event.id().as_ref() == "menu-open-settings" {
+        let _ = app_handle.emit("menu-open-settings", ());
     }
 }
 
@@ -1214,15 +1195,6 @@ pub fn run() {
             parasite_commands::parasite_reset,
             bundled_commands::get_mother_hints,
             bundled_commands::get_install_index,
-            ai_career_commands::ai_career_family_history,
-            ai_career_commands::ai_career_heatmap,
-            ai_career_commands::ai_career_token_bytes,
-            ai_career_commands::ai_career_daily_tokens,
-            ai_career_commands::reveal_ai_career_session_file,
-            pulse_commands::pulse_save,
-            pulse_commands::pulse_load_all,
-            settings_commands::set_avatar,
-            settings_commands::get_avatar,
             commands::voice_input_commands::voice_input_state,
             commands::voice_input_commands::voice_input_models,
             commands::voice_input_commands::voice_input_devices,

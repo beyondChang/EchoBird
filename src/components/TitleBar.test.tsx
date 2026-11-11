@@ -67,7 +67,7 @@ it('leaves space for native macOS traffic lights and retains dragging on blank t
   expect(
     view.root.findByProps({ 'aria-controls': 'app-sidebar' }).parent!.props.className
   ).toContain('ml-20');
-  expect(view.root.findAllByType('button')).toHaveLength(6);
+  expect(view.root.findAllByType('button')).toHaveLength(3);
   const down = view.root.findAllByType('div')[0].props.onMouseDown;
   down({ button: 0, target: { closest: () => null }, preventDefault: vi.fn() });
   expect(windowApi.startDragging).toHaveBeenCalledOnce();
@@ -121,10 +121,8 @@ it('keeps left-button dragging on the blank title area and excludes nested contr
 });
 
 it('keeps header actions and native window controls independent of dragging', async () => {
-  const changelog = vi.fn(),
-    feedback = vi.fn();
   await act(async () => {
-    view = create(<TitleBar onChangelogClick={changelog} onFeedbackClick={feedback} />);
+    view = create(<TitleBar />);
   });
   expect(view.root.findAllByProps({ 'aria-label': 'settings.title' })).toHaveLength(0);
   for (const button of view.root.findAllByType('button')) {
@@ -132,14 +130,7 @@ it('keeps header actions and native window controls independent of dragging', as
       await button.props.onClick();
     });
   }
-  for (const action of [
-    changelog,
-    feedback,
-    lifecycleApi.hideMainWindow,
-    windowApi.minimize,
-    windowApi.maximize,
-    windowApi.destroy,
-  ]) {
+  for (const action of [windowApi.minimize, windowApi.maximize, windowApi.destroy]) {
     expect(action).toHaveBeenCalledTimes(1);
   }
   expect(windowApi.startDragging).not.toHaveBeenCalled();

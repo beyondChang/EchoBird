@@ -168,7 +168,7 @@ describe('Sidebar', () => {
     const items = renderer.root
       .findAllByType('button')
       .filter((button) => button.props['aria-label'] && button.props.role !== 'switch');
-    expect(items).toHaveLength(10);
+    expect(items).toHaveLength(8);
     expect(items.every((item) => item.findByType('span').props.className === 'sr-only')).toBe(true);
     expect(renderer.root.findAllByProps({ 'aria-current': 'page' })).toHaveLength(1);
     expect(renderer.root.findByProps({ 'aria-current': 'page' }).props['aria-label']).toBe(
@@ -280,17 +280,8 @@ describe('Sidebar', () => {
       renderer.root
         .findAllByType('button')
         .filter((button) => button.props['aria-label'] && button.props.role !== 'switch')
-    ).toHaveLength(10);
+    ).toHaveLength(8);
     expect(baseProps.onPageChange).not.toHaveBeenCalled();
-  });
-
-  it('places AI news immediately above My AI Career', () => {
-    act(() => {
-      renderer = create(<Sidebar {...baseProps} smartRouterGroups={[]} />);
-    });
-    const markup = JSON.stringify(renderer.toJSON());
-    expect(markup.indexOf('nav.aiNews')).toBeGreaterThan(-1);
-    expect(markup.indexOf('nav.aiNews')).toBeLessThan(markup.indexOf('nav.aiCareer'));
   });
 
   it('hides the smart router switch when no model is connected', () => {
@@ -490,23 +481,17 @@ describe('Sidebar', () => {
   });
 });
 
-it('hides optional pages before settings load and independently removes only disabled entries', () => {
+it('hides optional pages before settings load and removes the entry when disabled', () => {
   useNavigationStore.setState({ optionalPagesReady: false });
   act(() => {
     renderer = create(<Sidebar {...baseProps} smartRouterGroups={[]} />);
   });
   const render = () => JSON.stringify(renderer.toJSON());
-  for (const label of ['nav.aiNews', 'nav.aiCareer', 'nav.localServer'])
-    expect(render()).not.toContain(label);
-  act(() =>
-    useNavigationStore.getState().setOptionalPages({ aiNews: true, aiCareer: true, localLlm: true })
-  );
-  for (const label of ['nav.aiNews', 'nav.aiCareer', 'nav.localServer'])
-    expect(render()).toContain(label);
-  act(() => useNavigationStore.getState().setOptionalPages({ aiNews: false, localLlm: false }));
-  expect(render()).not.toContain('nav.aiNews');
   expect(render()).not.toContain('nav.localServer');
-  expect(render()).toContain('nav.aiCareer');
+  act(() => useNavigationStore.getState().setOptionalPages({ localLlm: true }));
+  expect(render()).toContain('nav.localServer');
+  act(() => useNavigationStore.getState().setOptionalPages({ localLlm: false }));
+  expect(render()).not.toContain('nav.localServer');
   expect(render()).toContain('nav.modelNexus');
   expect(baseProps.onPageChange).not.toHaveBeenCalled();
 });

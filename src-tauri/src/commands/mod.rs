@@ -12,7 +12,6 @@ pub mod model_commands;
 pub mod native_account_commands;
 pub mod plugin_commands;
 pub mod process_commands;
-pub mod pulse_commands;
 pub mod qoder_account_commands;
 pub mod qwenwork_account_commands;
 pub mod settings_commands;
@@ -22,7 +21,6 @@ pub mod usage_island_commands;
 pub mod voice_input_commands;
 
 pub mod agent_commands;
-pub mod ai_career_commands;
 pub mod bundled_commands;
 pub mod parasite_commands;
 pub mod secret_commands;

@@ -18,18 +18,6 @@ pub struct AppSettings {
     pub statistics_recording: Option<bool>,
     #[serde(
         default,
-        rename = "aiNewsEnabled",
-        skip_serializing_if = "Option::is_none"
-    )]
-    pub ai_news_enabled: Option<bool>,
-    #[serde(
-        default,
-        rename = "aiCareerEnabled",
-        skip_serializing_if = "Option::is_none"
-    )]
-    pub ai_career_enabled: Option<bool>,
-    #[serde(
-        default,
         rename = "localLlmEnabled",
         skip_serializing_if = "Option::is_none"
     )]
@@ -47,11 +35,6 @@ pub struct AppSettings {
     pub close_to_tray: Option<bool>,
     #[serde(default, rename = "closeWindowBehaviorSet")]
     pub close_window_behavior_set: Option<bool>,
-    // "我的AI生涯" profile display name. The avatar is a separate PNG file
-    // (see set_avatar / get_avatar) rather than inline base64 to keep
-    // settings.json small.
-    #[serde(default, rename = "displayName")]
-    pub display_name: Option<String>,
     #[serde(
         default,
         rename = "sensitiveInfoProtection",
@@ -135,8 +118,6 @@ fn patch_settings_at(
     for key in [
         "developerMode",
         "statisticsRecording",
-        "aiNewsEnabled",
-        "aiCareerEnabled",
         "localLlmEnabled",
         "sensitiveInfoProtection",
     ] {
@@ -186,47 +167,10 @@ fn preserve_protection_setting(
     if settings.developer_mode.is_none() {
         settings.developer_mode = saved.developer_mode;
     }
-    if settings.ai_news_enabled.is_none() {
-        settings.ai_news_enabled = saved.ai_news_enabled;
-    }
-    if settings.ai_career_enabled.is_none() {
-        settings.ai_career_enabled = saved.ai_career_enabled;
-    }
     if settings.local_llm_enabled.is_none() {
         settings.local_llm_enabled = saved.local_llm_enabled;
     }
     Ok(())
-}
-
-fn avatar_path() -> std::path::PathBuf {
-    echobird_dir().join("avatar.png")
-}
-
-/// Set the "我的AI生涯" profile avatar from a user-picked image file. The
-/// source is decoded, downscaled to fit 256×256 (aspect preserved), and
-/// re-encoded as PNG at `~/.echobird/avatar.png` so a large photo can't bloat
-/// the stored file or the IPC payload.
-#[tauri::command]
-pub fn set_avatar(source_path: String) -> Result<(), String> {
-    let img = image::open(&source_path).map_err(|e| format!("read image: {e}"))?;
-    let thumb = img.thumbnail(256, 256);
-    let dir = echobird_dir();
-    if !dir.exists() {
-        std::fs::create_dir_all(&dir).map_err(|e| e.to_string())?;
-    }
-    thumb
-        .save_with_format(avatar_path(), image::ImageFormat::Png)
-        .map_err(|e| format!("save avatar: {e}"))?;
-    Ok(())
-}
-
-/// Read the stored avatar as a base64 PNG data URI, or `None` if unset.
-#[tauri::command]
-pub fn get_avatar() -> Option<String> {
-    use base64::Engine as _;
-    let bytes = std::fs::read(avatar_path()).ok()?;
-    let b64 = base64::engine::general_purpose::STANDARD.encode(bytes);
-    Some(format!("data:image/png;base64,{b64}"))
 }
 
 #[cfg(test)]
@@ -245,7 +189,7 @@ mod tests {
         });
         let second = path.clone();
         let b = std::thread::spawn(move || {
-            super::patch_settings_at(&second, serde_json::json!({"aiNewsEnabled":false})).unwrap()
+            super::patch_settings_at(&second, serde_json::json!({"localLlmEnabled":false})).unwrap()
         });
         a.join().unwrap();
         b.join().unwrap();
@@ -253,7 +197,7 @@ mod tests {
         let saved: serde_json::Value =
             serde_json::from_slice(&std::fs::read(&path).unwrap()).unwrap();
         assert_eq!(saved["locale"], "ja");
-        assert_eq!(saved["aiNewsEnabled"], false);
+        assert_eq!(saved["localLlmEnabled"], false);
         assert_eq!(saved["future"]["keep"], true);
         assert!(saved["themeMode"].is_null());
         let bytes = std::fs::read(&path).unwrap();
@@ -275,15 +219,11 @@ mod tests {
         std::fs::create_dir_all(&root).unwrap();
         let path = root.join("settings.json");
         let defaults = read_settings(&path);
-        assert_ne!(defaults.ai_news_enabled, Some(false));
-        assert_ne!(defaults.ai_career_enabled, Some(false));
         assert_ne!(defaults.local_llm_enabled, Some(false));
         assert!(!path.exists());
-        let original = br#"{"aiNewsEnabled":false,"aiCareerEnabled":false,"localLlmEnabled":false,"locale":"ja"}"#;
+        let original = br#"{"localLlmEnabled":false,"locale":"ja"}"#;
         std::fs::write(&path, original).unwrap();
         let saved = read_settings(&path);
-        assert_eq!(saved.ai_news_enabled, Some(false));
-        assert_eq!(saved.ai_career_enabled, Some(false));
         assert_eq!(saved.local_llm_enabled, Some(false));
         let mut update = super::AppSettings {
             locale: Some("en".into()),
@@ -291,13 +231,10 @@ mod tests {
         };
         super::preserve_protection_setting(&path, &mut update).unwrap();
         let value = serde_json::to_value(&update).unwrap();
-        for key in ["aiNewsEnabled", "aiCareerEnabled", "localLlmEnabled"] {
-            assert_eq!(value[key], false);
-        }
-        update.ai_news_enabled = Some(true);
+        assert_eq!(value["localLlmEnabled"], false);
+        update.local_llm_enabled = Some(true);
         super::preserve_protection_setting(&path, &mut update).unwrap();
-        assert_eq!(update.ai_news_enabled, Some(true));
-        assert_eq!(update.ai_career_enabled, Some(false));
+        assert_eq!(update.local_llm_enabled, Some(true));
         assert_eq!(std::fs::read(&path).unwrap(), original);
         std::fs::remove_dir_all(root).unwrap();
     }

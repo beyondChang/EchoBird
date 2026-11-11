@@ -3,8 +3,6 @@ import { useRef, type ReactNode } from 'react';
 import {
   Box,
   Server,
-  Trophy,
-  Newspaper,
   House,
   Waypoints,
   MessagesSquare,
@@ -37,13 +35,10 @@ export type PageType =
   | 'accounts'
   | 'freeModels'
   | 'apps'
-  | 'aiNews'
-  | 'aiCareer'
   | 'voice'
   | 'developer'
   | 'localLlm'
-  | 'mother'
-  | 'feedback';
+  | 'mother';
 
 interface SidebarProps {
   activePage: PageType;
@@ -247,26 +242,8 @@ export const Sidebar = ({
             )
           }
         />
-        {/* Divider — primary actions above; news, career and project tools below */}
+        {/* Divider — primary actions above; project tools below */}
         <div ref={perchRef} className="border-t border-cyber-border/50" />
-        {optionalPagesReady && optionalPages.aiNews && (
-          <NavItem
-            collapsed={collapsed}
-            icon={<Newspaper size={20} />}
-            label={t('nav.aiNews')}
-            active={activePage === 'aiNews'}
-            onClick={() => onPageChange('aiNews')}
-          />
-        )}
-        {optionalPagesReady && optionalPages.aiCareer && (
-          <NavItem
-            collapsed={collapsed}
-            icon={<Trophy size={20} />}
-            label={t('nav.aiCareer')}
-            active={activePage === 'aiCareer'}
-            onClick={() => onPageChange('aiCareer')}
-          />
-        )}
         {isFullEdition && optionalPagesReady && optionalPages.localLlm && (
           <NavItem
             collapsed={collapsed}

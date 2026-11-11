@@ -141,7 +141,7 @@ test('HEAD checks the installer without transferring its body', async () => {
 });
 
 test('normal website requests pass through with their headers intact', async () => {
-  const request = new Request('https://echobird.ai/pulse/latest-7d.json');
+  const request = new Request('https://echobird.ai/');
   const asset = new Response('feed', { headers: { 'Access-Control-Allow-Origin': '*' } });
   const env = createEnv(() => asset);
   assert.equal(await worker.fetch(request, env), asset);

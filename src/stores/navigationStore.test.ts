@@ -174,11 +174,11 @@ it('keeps app signals and passive preference operations outside page history', (
   expect(setItem).not.toHaveBeenCalled();
 });
 
-it.each(['aiNews', 'aiCareer', 'localLlm'] as const)(
+it.each(['localLlm'] as const)(
   'disabling %s redirects its current page, removes history and blocks stale navigation',
   (page) => {
     const nav = navigation.getState();
-    nav.setOptionalPages({ aiNews: true, aiCareer: true, localLlm: true });
+    nav.setOptionalPages({ localLlm: true });
     nav.setActivePage('models');
     nav.setActivePage(page);
     nav.setActivePage('voice');

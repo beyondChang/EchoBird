@@ -398,8 +398,6 @@ it('groups general preferences before optional features and preserves rewards th
     'settings.launchAtStartup',
     'settings.autoClaimRewards',
     'settings.sensitiveInfoProtection',
-    'nav.aiNews',
-    'nav.aiCareer',
     'settings.routerStatistics',
     'nav.localServer',
     'settings.easterEgg',
@@ -425,7 +423,7 @@ it('keeps global protection independent in the three-column General preferences'
   await act(async () => {
     view = create(<SettingsDialog {...props} />);
   });
-  expect(view.root.findAllByProps({ role: 'switch' })).toHaveLength(8);
+  expect(view.root.findAllByProps({ role: 'switch' })).toHaveLength(6);
   expect(
     view.root.findAllByProps({ 'aria-label': 'settings.sensitiveInfoProtection' })
   ).toHaveLength(1);
@@ -827,22 +825,16 @@ it.each([false, true])(
   }
 );
 
-const optionalSwitch = (page: 'aiNews' | 'aiCareer' | 'localServer') =>
+const optionalSwitch = (page: 'localLlm' | 'localServer') =>
   view.root
     .findAllByProps({ role: 'switch' })
     .find((node) => node.props['aria-label'] === `nav.${page}`)!;
 
-it.each([
-  ['aiNews', 'aiNews', 'aiNewsEnabled'],
-  ['aiCareer', 'aiCareer', 'aiCareerEnabled'],
-  ['localLlm', 'localServer', 'localLlmEnabled'],
-] as const)(
+it.each([['localLlm', 'localServer', 'localLlmEnabled']] as const)(
   'saves only an explicit %s change, retaining other switches and settings',
   async (page, label, key) => {
     const saved = {
       locale: 'ja',
-      aiNewsEnabled: true,
-      aiCareerEnabled: true,
       localLlmEnabled: true,
     };
     mocks.get.mockResolvedValue(saved);
@@ -869,10 +861,10 @@ it('keeps optional pages enabled on a failed save and reports the explicit failu
     view = create(<SettingsDialog {...props} />);
   });
   mocks.save.mockRejectedValueOnce(new Error('disk full'));
-  useNavigationStore.getState().setActivePage('aiNews');
-  await act(async () => optionalSwitch('aiNews').props.onClick());
-  expect(useNavigationStore.getState().optionalPages.aiNews).toBe(true);
-  expect(useNavigationStore.getState().activePage).toBe('aiNews');
+  useNavigationStore.getState().setActivePage('localLlm');
+  await act(async () => optionalSwitch('localServer').props.onClick());
+  expect(useNavigationStore.getState().optionalPages.localLlm).toBe(true);
+  expect(useNavigationStore.getState().activePage).toBe('localLlm');
   expect(JSON.stringify(view.toJSON())).toContain('settings.optionalFeaturesError');
 });
 
@@ -886,14 +878,14 @@ it('serializes optional and master-switch saves and ignores stale reads after re
       finishSave = resolve;
     })
   );
-  await act(async () => optionalSwitch('aiCareer').props.onClick());
-  expect(optionalSwitch('aiNews').props.disabled).toBe(true);
+  await act(async () => optionalSwitch('localServer').props.onClick());
+  expect(optionalSwitch('localServer').props.disabled).toBe(true);
   expect(statisticsSwitch().props.disabled).toBe(true);
   // Saving locks the controls without fading them out and back in.
   for (const control of view.root.findAllByProps({ role: 'switch' })) {
     expect(control.props.className).not.toContain('disabled:opacity-50');
   }
-  await act(async () => optionalSwitch('aiNews').props.onClick());
+  await act(async () => optionalSwitch('localServer').props.onClick());
   expect(mocks.save).toHaveBeenCalledOnce();
   await act(async () => view.update(<SettingsDialog {...props} isOpen={false} />));
   let finishRead!: (value: object) => void;
@@ -904,8 +896,8 @@ it('serializes optional and master-switch saves and ignores stale reads after re
   );
   await act(async () => view.update(<SettingsDialog {...props} />));
   await act(async () => finishSave());
-  await act(async () => finishRead({ aiCareerEnabled: true }));
-  expect(optionalSwitch('aiCareer').props['aria-checked']).toBe(false);
+  await act(async () => finishRead({ localLlmEnabled: true }));
+  expect(optionalSwitch('localServer').props['aria-checked']).toBe(false);
 });
 
 it('has no update section and does not fetch an update manifest on opening', async () => {

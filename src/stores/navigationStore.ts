@@ -63,8 +63,7 @@ interface NavigationState {
 
 function pageEnabled(state: NavigationState, page: PageType): boolean {
   if (page === 'developer') return state.developerMode;
-  if (page === 'aiNews' || page === 'aiCareer' || page === 'localLlm')
-    return state.optionalPages[page];
+  if (page === 'localLlm') return state.optionalPages[page];
   return true;
 }
 

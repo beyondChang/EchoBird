@@ -49,7 +49,6 @@ import { AppManagerProvider } from './pages/AppManager/AppManagerProvider';
 import { UsageIslandHost } from './pages/UsageIsland/UsageIslandHost';
 import { LocalServerProvider } from './pages/LocalServer/provider';
 import { MotherAgentProvider } from './pages/MotherAgent/MotherAgentProvider';
-import { AiPulseProvider } from './pages/AiPulse/provider';
 import { FreeModelsProvider, useFreeModels } from './pages/FreeModels/provider';
 import { VoiceInputProvider } from './pages/VoiceInput/provider';
 const UsageIslandMain = lazy(() =>
@@ -124,27 +123,6 @@ const MotherAgentPanel = lazy(() =>
     default: module.MotherAgentPanel,
   }))
 );
-const FeedbackMain = lazy(() =>
-  import('./pages/Feedback').then((module) => ({ default: module.FeedbackMain }))
-);
-const AiCareerMain = lazy(() =>
-  import('./pages/AiCareer').then((module) => ({ default: module.AiCareerMain }))
-);
-const AiCareerFamilyPanel = lazy(() =>
-  import('./pages/AiCareer').then((module) => ({ default: module.AiCareerFamilyPanel }))
-);
-const AiCareerTitleActions = lazy(() =>
-  import('./pages/AiCareer').then((module) => ({ default: module.AiCareerTitleActions }))
-);
-const AiPulseTitleActions = lazy(() =>
-  import('./pages/AiPulse/AiPulse').then((module) => ({ default: module.AiPulseTitleActions }))
-);
-const AiPulsePanel = lazy(() =>
-  import('./pages/AiPulse/AiPulse').then((module) => ({ default: module.AiPulsePanel }))
-);
-const AiNewsMain = lazy(() =>
-  import('./pages/AiPulse/AiPulse').then((module) => ({ default: module.AiNewsMain }))
-);
 const AccountCenterMain = lazy(() =>
   import('./pages/AccountCenter/AccountCenter').then((module) => ({
     default: module.AccountCenterMain,
@@ -173,9 +151,6 @@ const FreeModelsPanel = lazy(() =>
 );
 const SettingsDialog = lazy(() =>
   import('./components/SettingsDialog').then((module) => ({ default: module.SettingsDialog }))
-);
-const ChangelogDialog = lazy(() =>
-  import('./components/ChangelogDialog').then((module) => ({ default: module.ChangelogDialog }))
 );
 
 function ModelDialogs() {
@@ -220,8 +195,6 @@ function AppContent() {
   useAutoClaimRewards();
   const { t, locale, setLocale } = useI18n();
   const [showSettings, setShowSettings] = useState(false);
-  const [showChangelog, setShowChangelog] = useState(false);
-  const [showVoiceGuideOnClose, setShowVoiceGuideOnClose] = useState(false);
 
   // Stores — selector form so App.tsx (the root of the entire tree) only
   // re-renders when activePage flips, not on every motherNewMessage tick.
@@ -236,9 +209,7 @@ function AppContent() {
   const smartAccessTab = useNavigationStore((state) => state.smartAccessTab);
   const optionalPages = useNavigationStore((state) => state.optionalPages);
   const optionalPagesReady = useNavigationStore((state) => state.optionalPagesReady);
-  const enabledPages = optionalPagesReady
-    ? optionalPages
-    : { aiNews: false, aiCareer: false, localLlm: false };
+  const enabledPages = optionalPagesReady ? optionalPages : { localLlm: false };
 
   useEffect(() => {
     let active = true;
@@ -270,30 +241,9 @@ function AppContent() {
       } catch {
         /* continue anyway */
       }
-      // Resolve the installed version first (local, instant). The changelog
-      // auto-open is a purely local decision so it still fires when offline
-      // (the dialog then shows its own error state); the update check below
-      // needs the network.
+      // Resolve the installed version first (local, instant); the update check
+      // below needs the network.
       const appVersion = await getVersion().catch(() => '');
-      if (appVersion) {
-        try {
-          const seen = localStorage.getItem('echobird-changelog-seen');
-          // Open on the first launch of any version we haven't recorded yet: a
-          // fresh install / reinstall (no baseline) or a genuine upgrade. A real
-          // uninstall wipes localStorage, so "updated" and "first install" are
-          // indistinguishable — showing the notes once on either is the robust
-          // choice. Only a downgrade (seen is newer) is skipped.
-          if (!seen || isNewerVersion(appVersion, seen)) {
-            setShowVoiceGuideOnClose(true);
-            setShowChangelog(true);
-          }
-          if (seen !== appVersion) {
-            localStorage.setItem('echobird-changelog-seen', appVersion);
-          }
-        } catch {
-          /* localStorage unavailable — skip the auto-open */
-        }
-      }
       try {
         const data = await fetchLatestManifest();
         if (data && appVersion && isNewerVersion(data.version, appVersion)) {
@@ -330,7 +280,7 @@ function AppContent() {
   }, []);
 
   // Wire the macOS app-menu items to the same actions as the in-window buttons:
-  // Settings (⌘,) opens the Settings dialog, Feedback opens the Feedback page.
+  // Settings (⌘,) opens the Settings dialog.
   // The Rust menu handler emits these events; on Windows/Linux there is no app
   // menu, so they simply never fire.
   useEffect(() => {
@@ -341,9 +291,6 @@ function AppContent() {
       else unlistens.push(unlisten);
     };
     void listen('menu-open-settings', () => setShowSettings(true))
-      .then(retain)
-      .catch(console.error);
-    void listen('menu-open-feedback', () => setActivePage('feedback'))
       .then(retain)
       .catch(console.error);
     return () => {
@@ -391,13 +338,7 @@ function AppContent() {
                       >
                         <AppBackground />
                         {/* Title bar */}
-                        <TitleBar
-                          onFeedbackClick={() => setActivePage('feedback')}
-                          onChangelogClick={() => {
-                            setShowVoiceGuideOnClose(false);
-                            setShowChangelog(true);
-                          }}
-                        />
+                        <TitleBar />
                         <div className="flex flex-1 overflow-hidden text-cyber-text font-sans p-4 gap-0 relative isolate">
                           {/* Sidebar */}
                           <SidebarConnected onSettingsClick={() => setShowSettings(true)} />
@@ -420,12 +361,9 @@ function AppContent() {
                                           {is('freeModels') && t('page.freeModels')}
 
                                           {is('apps') && t('page.appManager')}
-                                          {is('aiCareer') && t('page.aiCareer')}
                                           {is('voice') && t('voice.input')}
-                                          {is('aiNews') && t('page.aiNews')}
                                           {is('localLlm') && t('page.localServer')}
                                           {is('mother') && t('page.motherAgent')}
-                                          {is('feedback') && t('page.feedback')}
                                         </h2>
                                         <div className="page-kicker truncate" aria-hidden="true">
                                           {is('models') && 'MODELS'}
@@ -433,12 +371,9 @@ function AppContent() {
                                           {is('freeModels') &&
                                             (locale.startsWith('zh') ? 'ACCESS' : 'ROUTER')}
                                           {is('apps') && 'DESKTOP'}
-                                          {is('aiCareer') && 'CAREER'}
                                           {is('voice') && 'VOICE'}
-                                          {is('aiNews') && 'NEWS'}
                                           {is('localLlm') && 'RUNTIME'}
                                           {is('mother') && 'AGENT'}
-                                          {is('feedback') && 'SUPPORT'}
                                         </div>
                                       </div>
                                       {/* Title actions — always mounted but hidden */}
@@ -457,20 +392,6 @@ function AppContent() {
                                           <FreeModelsTitleActions />
                                         </OnFirstVisit>
                                       </span>
-                                      {enabledPages.aiCareer && (
-                                        <span className={page(is('aiCareer'))}>
-                                          <OnFirstVisit active={is('aiCareer')}>
-                                            <AiCareerTitleActions />
-                                          </OnFirstVisit>
-                                        </span>
-                                      )}
-                                      {enabledPages.aiNews && (
-                                        <span className={page(is('aiNews'))}>
-                                          <OnFirstVisit active={is('aiNews')}>
-                                            <AiPulseTitleActions />
-                                          </OnFirstVisit>
-                                        </span>
-                                      )}
                                       <span className={page(is('apps'))}>
                                         <OnFirstVisit active={is('apps')}>
                                           <AppManagerTitleActions />
@@ -537,36 +458,17 @@ function AppContent() {
                                         </OnFirstVisit>
                                       </div>
                                     )}
-                                    {enabledPages.aiCareer && (
-                                      <div className={pageBlock(is('aiCareer'))}>
-                                        <OnFirstVisit active={is('aiCareer')}>
-                                          <AiCareerMain />
-                                        </OnFirstVisit>
-                                      </div>
-                                    )}
                                     <div className={pageBlock(is('voice'))}>
                                       <OnFirstVisit active={is('voice')}>
                                         <VoiceInputMain />
                                       </OnFirstVisit>
                                     </div>
-                                    {enabledPages.aiNews && (
-                                      <div className={pageBlock(is('aiNews'))}>
-                                        <OnFirstVisit active={is('aiNews')}>
-                                          <AiNewsMain />
-                                        </OnFirstVisit>
-                                      </div>
-                                    )}
                                     {/* MotherAgent: always mounted, hidden via CSS to preserve chat state */}
                                     <div
                                       className={`flex-1 flex flex-col overflow-hidden ${is('mother') ? '' : 'hidden'}`}
                                     >
                                       <OnFirstVisit active={is('mother')}>
                                         <MotherAgentMain />
-                                      </OnFirstVisit>
-                                    </div>
-                                    <div className={pageScroll(is('feedback'))}>
-                                      <OnFirstVisit active={is('feedback')}>
-                                        <FeedbackMain />
                                       </OnFirstVisit>
                                     </div>
                                   </section>
@@ -628,20 +530,6 @@ function AppContent() {
                                       </OnFirstVisit>
                                     </div>
                                   )}
-                                  {enabledPages.aiCareer && (
-                                    <div className={page(is('aiCareer'))}>
-                                      <OnFirstVisit active={is('aiCareer')}>
-                                        <AiCareerFamilyPanel />
-                                      </OnFirstVisit>
-                                    </div>
-                                  )}
-                                  {enabledPages.aiNews && (
-                                    <div className={page(is('aiNews'))}>
-                                      <OnFirstVisit active={is('aiNews')}>
-                                        <AiPulsePanel />
-                                      </OnFirstVisit>
-                                    </div>
-                                  )}
                                   {/* MotherAgent panel: always mounted, hidden via CSS */}
                                   <div className={!is('mother') ? 'hidden' : 'contents'}>
                                     <OnFirstVisit active={is('mother')}>
@@ -694,15 +582,6 @@ function AppContent() {
                 onLocaleChange={setLocale}
               />
             </OnFirstVisit>
-
-            {/* Changelog dialog */}
-            <OnFirstVisit active={showChangelog}>
-              <ChangelogDialog
-                isOpen={showChangelog}
-                showVoiceGuideOnClose={showVoiceGuideOnClose}
-                onClose={() => setShowChangelog(false)}
-              />
-            </OnFirstVisit>
           </DownloadProvider>
         </ConfirmDialogProvider>
       </FreeModelsProvider>
@@ -711,13 +590,11 @@ function AppContent() {
 }
 
 function App() {
-  const activePage = useNavigationStore((s) => s.activePage);
-  const newsEnabled = useNavigationStore((s) => s.optionalPagesReady && s.optionalPages.aiNews);
   return (
-    <AiPulseProvider enabled={newsEnabled} active={activePage === 'aiNews'}>
+    <>
       <PluginProductBridge />
       <AppContent />
-    </AiPulseProvider>
+    </>
   );
 }
 

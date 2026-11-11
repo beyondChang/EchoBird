@@ -110,10 +110,7 @@ describe('application character background lifecycle', () => {
       'freeModels',
       'mother',
       'developer',
-      'aiCareer',
-      'aiNews',
       'localLlm',
-      'feedback',
       'apps',
     ] as const) {
       act(() => {

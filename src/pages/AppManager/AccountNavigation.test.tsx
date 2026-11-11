@@ -1370,7 +1370,7 @@ it('Usage Island: the open window keeps background groups through page and tool 
     act(() => useNavigationStore.getState().setActivePage('models'));
     await tick();
     expect(loads()).toBe(loaded + 1);
-    act(() => useNavigationStore.getState().setActivePage('aiNews'));
+    act(() => useNavigationStore.getState().setActivePage('mother'));
     await tick();
     act(() => useNavigationStore.getState().setActivePage('voice'));
     await tick();

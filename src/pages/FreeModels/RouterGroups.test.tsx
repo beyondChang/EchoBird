@@ -917,7 +917,7 @@ describe('Independent smart router groups', () => {
     ]) {
       await act(async () => button(`model.copy ${label}`).props.onClick());
       expect(copyText).toHaveBeenLastCalledWith(value);
-      expect(showToast).toHaveBeenLastCalledWith('success', 'feedback.step1.copied');
+      expect(showToast).toHaveBeenLastCalledWith('success', 'common.copied');
     }
     expect(input('router-modelId').props.value).toBe('custom-route');
     expect(input('router-apiKey').props.value).toBe('custom-key');
@@ -941,14 +941,14 @@ describe('Independent smart router groups', () => {
     expect(input('router-apiKey').props.readOnly).toBe(true);
     expect(input('router-apiKey').props.value).not.toContain('private-key');
     expect(input('router-key-hint').children).toEqual(['key.encrypted']);
-    expect(showToast).toHaveBeenLastCalledWith('success', 'feedback.step1.copied');
+    expect(showToast).toHaveBeenLastCalledWith('success', 'common.copied');
     vi.mocked(copyText).mockResolvedValueOnce(false);
     await act(async () => button('model.copy model.apiKey').props.onClick());
-    expect(showToast).toHaveBeenLastCalledWith('error', 'feedback.step1.failed');
+    expect(showToast).toHaveBeenLastCalledWith('error', 'common.copyFailed');
     vi.mocked(api.decryptSecret).mockResolvedValueOnce('');
     await act(async () => button('model.copy model.apiKey').props.onClick());
     expect(copyText).toHaveBeenCalledTimes(2);
-    expect(showToast).toHaveBeenLastCalledWith('error', 'feedback.step1.failed');
+    expect(showToast).toHaveBeenLastCalledWith('error', 'common.copyFailed');
     expect(api.saveSmartRouter).not.toHaveBeenCalled();
   });
 
